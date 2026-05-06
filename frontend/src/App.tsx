@@ -45,6 +45,27 @@ export default function App() {
       return;
     }
     await win.ethereum.request({ method: "eth_requestAccounts" });
+    
+    try {
+      await win.ethereum.request({
+        method: "wallet_switchEthereumChain",
+        params: [{ chainId: "0xaa36a7" }],
+      });
+    } catch (e: any) {
+      if (e.code === 4902) {
+        await win.ethereum.request({
+          method: "wallet_addEthereumChain",
+          params: [{
+            chainId: "0xaa36a7",
+            chainName: "Sepolia",
+            rpcUrls: ["https://rpc.sepolia.org"],
+            nativeCurrency: { name: "ETH", symbol: "ETH", decimals: 18 },
+            blockExplorerUrls: ["https://sepolia.etherscan.io"],
+          }],
+        });
+      }
+    }
+
     const prov = new ethers.BrowserProvider(win.ethereum);
     const signer = await prov.getSigner();
     const addr = await signer.getAddress();
@@ -53,6 +74,7 @@ export default function App() {
     setContract(ct);
     await loadStats(ct, addr);
   }
+
 
   async function loadStats(ct: any, addr: string) {
     try {
